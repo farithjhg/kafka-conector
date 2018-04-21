@@ -22,6 +22,9 @@ public class SenderConfig {
     String username;
 	@Value("${kafka.cloudkarafka.password}")
     String password;
+	@Value("${kafka.connection.type}")
+    String type;
+	
 	
     @Bean
     public Map<String, Object> producerConfigs() {
@@ -29,13 +32,21 @@ public class SenderConfig {
         String jaasTemplate = "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";";
         String jaasCfg = String.format(jaasTemplate, this.username, this.password);
         
+		props.put("acks", "all");
+		props.put("retries", 0);
+		props.put("batch.size", 16384);
+		props.put("linger.ms", 1);
+		props.put("buffer.memory", 33554432);		
+		
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put("session.timeout.ms", "30000");
-        props.put("security.protocol", "SASL_SSL");
-        props.put("sasl.mechanism", "SCRAM-SHA-256");
-        props.put("sasl.jaas.config", jaasCfg);
+        if(type.equals("SASL_SSL")) {
+            props.put("security.protocol", "SASL_SSL");
+            props.put("sasl.mechanism", "SCRAM-SHA-256");
+            props.put("sasl.jaas.config", jaasCfg);
+        }
         
         return props;
     }

@@ -25,7 +25,9 @@ public class ReceiverConfig {
     String username;
 	@Value("${kafka.cloudkarafka.password}")
     String password;
-
+	@Value("${kafka.connection.type}")
+    String type;
+	
 	@Bean
     public Map<String, Object> consumerConfigs() {
 		
@@ -37,11 +39,14 @@ public class ReceiverConfig {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, username + "-consumer");
         props.put("session.timeout.ms", "30000");
-        props.put("security.protocol", "SASL_SSL");
-        props.put("sasl.mechanism", "SCRAM-SHA-256");
-        props.put("sasl.jaas.config", jaasCfg);
+
+        if(type.equals("SASL_SSL")) {
+            props.put(ConsumerConfig.GROUP_ID_CONFIG, username + "-consumer");
+            props.put("security.protocol", "SASL_SSL");
+            props.put("sasl.mechanism", "SCRAM-SHA-256");
+            props.put("sasl.jaas.config", jaasCfg);
+        }
         
         return props;
     }

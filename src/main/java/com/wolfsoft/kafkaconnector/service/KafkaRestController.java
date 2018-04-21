@@ -30,7 +30,7 @@ public class KafkaRestController {
     public @ResponseBody ResponseEntity<String> produceRest(@RequestBody String message) {
 		String response = "";
 		try {
-			//Call Produce Process
+			//Call Produce Process AIzaSyAo81_mJVxBO_JJ_wfxpadY9V0ERr9wEzA
 			sender.send(topic, message);
 			
 			response = "Message Published";
