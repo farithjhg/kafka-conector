@@ -28,14 +28,14 @@ public class KafkaConnectorApplication {
 	    return new KafkaAdmin(configs);
 	}
 
-	@Bean
-	public NewTopic topic1() {
-	    return new NewTopic("my-topic1", 10, (short) 2);
-	}
-
-	@Bean
-	public NewTopic topic2() {
-	    return new NewTopic("my-topic1", 10, (short) 2);
-	}
+//	@Bean
+//	public NewTopic topic1() {
+//	    return new NewTopic("my-topic1", 10, (short) 2);
+//	}
+//
+//	@Bean
+//	public NewTopic topic2() {
+//	    return new NewTopic("my-topic1", 10, (short) 2);
+//	}
 
 }

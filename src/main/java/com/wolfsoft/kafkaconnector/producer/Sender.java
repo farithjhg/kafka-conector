@@ -1,5 +1,7 @@
 package com.wolfsoft.kafkaconnector.producer;
 
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +16,20 @@ public class Sender {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    public void send(String topic, String message){
+    @Autowired
+    private KafkaProducer<String, EmailConfig> producer;
+
+    
+    public void sendAsString(String topic, String message){
         LOG.info("sending message='{}' to topic='{}'", message, topic);
         kafkaTemplate.send(topic, message);
     }
+    
+    public void sendAsBytes(String topic, EmailConfig message){
+        LOG.info("sending message='{}' to topic='{}'", message, topic);
+        
+        ProducerRecord<String, EmailConfig> record = new ProducerRecord<>(topic, message);
+        producer.send(record);
+    }
+    
 }

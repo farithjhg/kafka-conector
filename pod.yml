@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-pod
+  labels:
+    zone: prod
+    version: v1
+spec:
+  replicas: 3
+  containers:
+  - name: hello-ctr
+    image: nigelpoulton/pluralsight-docker-ci:latest
+    ports:
+    - containerPort: 8080
