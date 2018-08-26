@@ -4,7 +4,6 @@ package com.wolfsoft.kafkaconnector.producer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -14,6 +13,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 
 @Configuration
 public class SenderConfig {
@@ -28,13 +29,38 @@ public class SenderConfig {
     String type;
 	
 	
+//    @Bean
+//    public Map<String, Object> producerConfigs() {
+//        Map<String, Object> props = new HashMap<>();
+//        String jaasTemplate = "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";";
+//        String jaasCfg = String.format(jaasTemplate, this.username, this.password);
+//        
+//		props.put("acks", "all");
+//		props.put("retries", 0);
+//		props.put("batch.size", 16384);
+//		props.put("linger.ms", 1);
+//		props.put("buffer.memory", 33554432);		
+//		
+//        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+//        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+//        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+//        props.put("session.timeout.ms", "30000");
+//        if(type.equals("SASL_SSL")) {
+//            props.put("security.protocol", "SASL_SSL");
+//            props.put("sasl.mechanism", "SCRAM-SHA-256");
+//            props.put("sasl.jaas.config", jaasCfg);
+//        }
+//        
+//        return props;
+//    }
+
     @Bean
-    public Map<String, Object> producerConfigs() {
+    public Map<String, Object> producerJsonConfigs() {
         Map<String, Object> props = new HashMap<>();
         String jaasTemplate = "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";";
         String jaasCfg = String.format(jaasTemplate, this.username, this.password);
         
-		props.put("acks", "all");
+		//props.put("acks", "all");
 		props.put("retries", 0);
 		props.put("batch.size", 16384);
 		props.put("linger.ms", 1);
@@ -42,8 +68,10 @@ public class SenderConfig {
 		
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.wolfsoft.kafkaconnector.producer");
         props.put("session.timeout.ms", "30000");
+        
         if(type.equals("SASL_SSL")) {
             props.put("security.protocol", "SASL_SSL");
             props.put("sasl.mechanism", "SCRAM-SHA-256");
@@ -54,12 +82,12 @@ public class SenderConfig {
     }
 
     @Bean
-    public Map<String, Object> producerAvroConfigs() {
+    public Map<String, Object> producerByteConfigs() {
         Map<String, Object> props = new HashMap<>();
         String jaasTemplate = "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";";
         String jaasCfg = String.format(jaasTemplate, this.username, this.password);
         
-		props.put("acks", "all");
+		//props.put("acks", "all");
 		props.put("retries", 0);
 		props.put("batch.size", 16384);
 		props.put("linger.ms", 1);
@@ -67,7 +95,7 @@ public class SenderConfig {
 		
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
         props.put("session.timeout.ms", "30000");
         
         if(type.equals("SASL_SSL")) {
@@ -79,24 +107,26 @@ public class SenderConfig {
         return props;
     }
 
-    @Bean
-    public Map<String, Object> producerAvroFactory() {
-        return producerAvroConfigs();
-    }
-
-    @Bean
-    public KafkaProducer<String, EmailConfig> producer() {
-        return new KafkaProducer<String, EmailConfig>(producerAvroFactory());
-    }
     
     @Bean
-    public ProducerFactory<String, String> producerFactory() {
-        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    public ProducerFactory<String, byte[]> producerAvroFactory() {
+        return new DefaultKafkaProducerFactory<>(producerByteConfigs());
     }
 
     @Bean
-    public KafkaTemplate<String, String> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public KafkaTemplate<String, byte[]> producer() {
+        return new KafkaTemplate<String, byte[]>(producerAvroFactory());
     }
+    
+  
+//    @Bean
+//    public ProducerFactory<String, String> producerFactory() {
+//        return new DefaultKafkaProducerFactory<>(producerConfigs());
+//    }
+
+//    @Bean
+//    public KafkaTemplate<String, String> kafkaTemplate() {
+//        return new KafkaTemplate<>(producerFactory());
+//    }
 
 }

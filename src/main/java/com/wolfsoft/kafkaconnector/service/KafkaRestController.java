@@ -28,9 +28,12 @@ public class KafkaRestController {
 	@Value("${kafka.cloudkarafka.topic}")
 	private String topic;
 
-	public static final String USER_SCHEMA = "{" + "\"type\":\"record\"," + "\"name\":\"communication_bb\","
-			+ "\"fields\":[" + "  { \"name\":\"emailTo\", \"type\":\"string\" },"
-			+ "  { \"name\":\"message\", \"type\":\"string\" }" + "]}";
+	public static final String USER_SCHEMA = "{" 
+				+ "\"type\":\"record\"," + "\"name\":\"communication_bb\","
+				+ "\"fields\":[" 
+					+ "  { \"name\":\"emailTo\", \"type\":\"string\" },"
+					+ "  { \"name\":\"message\", \"type\":\"string\" }" 
+				+ "]}";
 
 	/**
 	 * Kafka Produce Services
@@ -43,7 +46,6 @@ public class KafkaRestController {
 	public @ResponseBody ResponseEntity<String> produceRest(@RequestBody String message) {
 		String response = "";
 		try {
-			// Call Produce Process AIzaSyAo81_mJVxBO_JJ_wfxpadY9V0ERr9wEzA
 			sender.sendAsString(topic, message);
 
 			response = "Message Published";
@@ -65,19 +67,18 @@ public class KafkaRestController {
 	public @ResponseBody ResponseEntity<String> produceAvro(@RequestBody String message) {
 		String response = "";
 		try {
-//			Schema.Parser parser = new Schema.Parser();
-//			Schema schema = parser.parse(USER_SCHEMA);
-//			Injection<GenericRecord, byte[]> recordInjection = GenericAvroCodecs.toBinary(schema);
-//            
-//			GenericData.Record avroRecord = new GenericData.Record(schema);
-//            avroRecord.put("emailTo", "fheras.garcia@gmail.com");
-//            avroRecord.put("message", "Dear user, welcome to Twister Restaurants!");
-            EmailConfig emailConfig = new EmailConfig( "fheras.garcia@gmail.com", message);
-           // byte[] bytes = recordInjection.apply(avroRecord);
+			Schema.Parser parser = new Schema.Parser();
+			Schema schema = parser.parse(USER_SCHEMA);
+			Injection<GenericRecord, byte[]> recordInjection = GenericAvroCodecs.toBinary(schema);
             
-			sender.sendAsBytes(topic, emailConfig);
+			GenericData.Record avroRecord = new GenericData.Record(schema);
+            avroRecord.put("emailTo", "fheras.garcia@gmail.com");
+            avroRecord.put("message", message);
+            //EmailConfig emailConfig = new EmailConfig( "fheras.garcia@gmail.com", message);
+            byte[] data = recordInjection.apply(avroRecord);
+			sender.sendAsBytes(topic, data);
 
-			response = "Message avro Published";
+			response = "Message JSON Published";
 		} catch (Exception e) {
 			return new ResponseEntity<String>(e.getLocalizedMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
