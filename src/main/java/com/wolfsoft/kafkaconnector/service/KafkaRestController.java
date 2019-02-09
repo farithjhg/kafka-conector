@@ -8,32 +8,33 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.twitter.bijection.Injection;
 import com.twitter.bijection.avro.GenericAvroCodecs;
-import com.wolfsoft.kafkaconnector.producer.EmailConfig;
+import com.wolfsoft.kafkaconnector.consumer.Receiver;
+import com.wolfsoft.kafkaconnector.dto.AvroObject;
 import com.wolfsoft.kafkaconnector.producer.Sender;
 
+import lombok.extern.slf4j.Slf4j;
+import myasesor.server.fe.util.Utilidades;
+
 @RestController
+@Slf4j
 @RequestMapping("/kafka")
 public class KafkaRestController {
 	@Autowired
 	private Sender sender;
 
-	@Value("${kafka.cloudkarafka.topic}")
+	@Value("${kafka.cloudkarafka.topicOut}")
 	private String topic;
-
-	public static final String USER_SCHEMA = "{" 
-				+ "\"type\":\"record\"," + "\"name\":\"communication_bb\","
-				+ "\"fields\":[" 
-					+ "  { \"name\":\"emailTo\", \"type\":\"string\" },"
-					+ "  { \"name\":\"message\", \"type\":\"string\" }" 
-				+ "]}";
 
 	/**
 	 * Kafka Produce Services
@@ -42,7 +43,7 @@ public class KafkaRestController {
 	 *            - Record with Header and Body info
 	 * @return ResponseEntity<String>
 	 */
-	@RequestMapping(value = "/produce", method = RequestMethod.POST)
+	@PostMapping(value = "/produce")
 	public @ResponseBody ResponseEntity<String> produceRest(@RequestBody String message) {
 		String response = "";
 		try {
@@ -63,22 +64,16 @@ public class KafkaRestController {
 	 *            - Record with Header and Body info
 	 * @return ResponseEntity<String>
 	 */
-	@RequestMapping(value = "/produce/avro", method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> produceAvro(@RequestBody String message) {
+	@PostMapping(value = "/produce/avro")
+	public @ResponseBody ResponseEntity<String> produceAvro(@RequestBody AvroObject message) {
 		String response = "";
 		try {
-			Schema.Parser parser = new Schema.Parser();
-			Schema schema = parser.parse(USER_SCHEMA);
-			Injection<GenericRecord, byte[]> recordInjection = GenericAvroCodecs.toBinary(schema);
-            
-			GenericData.Record avroRecord = new GenericData.Record(schema);
-            avroRecord.put("emailTo", "fheras.garcia@gmail.com");
-            avroRecord.put("message", message);
-            //EmailConfig emailConfig = new EmailConfig( "fheras.garcia@gmail.com", message);
-            byte[] data = recordInjection.apply(avroRecord);
-			sender.sendAsBytes(topic, data);
+			log.info("Message received ='{}'", message);	
+			Gson gson = new Gson();
+			sender.sendAsBytes(topic, Utilidades.getData(gson.toJson(message.getHeader()), message.getPayload()));
+			log.info("Enviado a Kafka, Topic: "+topic);
 
-			response = "Message JSON Published";
+			response = "Message AVRO Published";
 		} catch (Exception e) {
 			return new ResponseEntity<String>(e.getLocalizedMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

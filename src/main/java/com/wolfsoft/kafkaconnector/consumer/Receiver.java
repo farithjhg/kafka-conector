@@ -1,30 +1,30 @@
 package com.wolfsoft.kafkaconnector.consumer;
 
-import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import com.twitter.bijection.Injection;
-import com.twitter.bijection.avro.GenericAvroCodecs;
-import com.wolfsoft.kafkaconnector.service.KafkaRestController;
+import com.google.gson.Gson;
+
+import lombok.extern.slf4j.Slf4j;
+import myasesor.server.fe.model.AvroHeader;
+import myasesor.server.fe.util.Utilidades;
 
 @Service
+@Slf4j
 public class Receiver {
-	private static final Logger logger = LoggerFactory.getLogger(Receiver.class);
 	
-	@KafkaListener(topics = "bvnnlu23-default")
+	//@KafkaListener(topics = "${kafka.cloudkarafka.topicIn}")
 	public void listen(byte[] avroRecord) {
-		logger.info("Message received ='{}'", avroRecord);
-		
-		Schema.Parser parser = new Schema.Parser();
-        Schema schema = parser.parse(KafkaRestController.USER_SCHEMA);
-        Injection<GenericRecord, byte[]> recordInjection = GenericAvroCodecs.toBinary(schema);
-        GenericRecord record = recordInjection.invert(avroRecord).get();
-
-        System.out.println("emailTo= " + record.get("emailTo")
-                + ", message= " + record.get("message"));		
+		log.info("Message avro received ='{}'", avroRecord);	
+        GenericRecord record = Utilidades.getRecord(avroRecord);
+        
+        String headerRecord = record.get("header").toString();
+        String payload = record.get("payload").toString();
+		log.info("Message header ='{}'", headerRecord);	
+		log.info("Message payload ='{}'", payload);
+        
+		AvroHeader avroHeader = new Gson().fromJson(headerRecord, AvroHeader.class);
+		log.info("Message AvroHeader ='{}'", avroHeader);	
 	}
 }
