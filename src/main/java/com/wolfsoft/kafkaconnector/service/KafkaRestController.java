@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.twitter.bijection.Injection;
 import com.twitter.bijection.avro.GenericAvroCodecs;
-import com.wolfsoft.kafkaconnector.producer.EmailConfig;
 import com.wolfsoft.kafkaconnector.producer.Sender;
 
 @RestController
@@ -25,7 +24,7 @@ public class KafkaRestController {
 	@Autowired
 	private Sender sender;
 
-	@Value("${kafka.cloudkarafka.topic}")
+	@Value("${kafka.eventhub.topic}")
 	private String topic;
 
 	public static final String USER_SCHEMA = "{" 
@@ -34,33 +33,10 @@ public class KafkaRestController {
 					+ "  { \"name\":\"emailTo\", \"type\":\"string\" },"
 					+ "  { \"name\":\"message\", \"type\":\"string\" }" 
 				+ "]}";
-
 	/**
 	 * Kafka Produce Services
 	 * 
-	 * @param producerRecord
-	 *            - Record with Header and Body info
-	 * @return ResponseEntity<String>
-	 */
-	@RequestMapping(value = "/produce", method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> produceRest(@RequestBody String message) {
-		String response = "";
-		try {
-			sender.sendAsString(topic, message);
-
-			response = "Message Published";
-		} catch (Exception e) {
-			return new ResponseEntity<String>(e.getLocalizedMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-
-		return new ResponseEntity<String>(response, HttpStatus.OK);
-	}
-
-	/**
-	 * Kafka Produce Services
-	 * 
-	 * @param producerRecord
-	 *            - Record with Header and Body info
+	 * @param message
 	 * @return ResponseEntity<String>
 	 */
 	@RequestMapping(value = "/produce/avro", method = RequestMethod.POST)
@@ -78,18 +54,13 @@ public class KafkaRestController {
             byte[] data = recordInjection.apply(avroRecord);
 			sender.sendAsBytes(topic, data);
 
-			response = "Message JSON Published";
+			response = "Message AVRO Published";
 		} catch (Exception e) {
+			e.printStackTrace();
 			return new ResponseEntity<String>(e.getLocalizedMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		return new ResponseEntity<String>(response, HttpStatus.OK);
-	}
-	
-	@RequestMapping(value = "/validate/{sessionId}", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<String> validate(@PathVariable String sessionId){
-		
-		return new ResponseEntity<String>("Session Id: "+sessionId, HttpStatus.OK);
 	}
 
 }

@@ -14,10 +14,10 @@ import com.wolfsoft.kafkaconnector.service.KafkaRestController;
 @Service
 public class Receiver {
 	private static final Logger logger = LoggerFactory.getLogger(Receiver.class);
-	
-	@KafkaListener(topics = "bvnnlu23-default")
+
+	@KafkaListener(topics = "${kafka.eventhub.topic}")
 	public void listen(byte[] avroRecord) {
-		logger.info("Message received ='{}'", avroRecord);
+		logger.info("Message received ='{}'", avroRecord.length);
 		
 		Schema.Parser parser = new Schema.Parser();
         Schema schema = parser.parse(KafkaRestController.USER_SCHEMA);
