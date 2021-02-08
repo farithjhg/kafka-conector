@@ -10,13 +10,13 @@ Spring Boot 2.0 App
 
 ### Summary
 
-This is an example how to use Apache Kafka with a Spring Boot Application, there are two main classes, the Sender, and the Receiver which are used to Produce and Consume Kafka Message, this implementation is using CLOUDKARAFKA  as Kafka Server and the SASL_SSL security protocol.
+This is an example how to use Apache Kafka Client with a Spring Boot Application, there are two main classes, the Sender, and the Receiver which are used to Produce and Consume AVRO Kafka Message, this implementation is using Azure Event Hub as Streaming Platform and the SASL_SSL security protocol.
 
 There is a Rest Service used to send a message to the Kafka Server and also there is a KafkaListener class which is receiving all the messages published on one topic.
 
 
 ### Requirements
-* Register on https://www.cloudkarafka.com/ and get the Credential to get access its Kafka Server.
+* Azure Event Hub https://docs.microsoft.com/es-es/azure/event-hubs/event-hubs-for-kafka-ecosystem-overview.
 * [Maven](https://maven.apache.org/install.html)
 * Java 8: Any compliant JVM should work.
   * [Java 8 JDK from Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
@@ -39,7 +39,10 @@ To build and run the application:
 ### Endpoints
 
 The application exposes the following endpoints:
-* Kafka Connector endpoint: `<host>:<port>/kafka/produce` e.g. [POST] http://localhost:8080/kafka/produce
-Send in the Body the Message
+* Kafka Connector endpoint: `<host>:<port>/kafka/produce` 
+  
+  e.g.: 
+  `curl --location --request POST 'http://localhost:9090/kafka/produce/avro' --header 'Content-Type: text/plain'  --data-raw 'Mensaje de Prueba Farith Heras'`
+
 
 The Consumer is logging in the console all the received messages 
