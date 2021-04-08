@@ -32,4 +32,26 @@ public class Sender {
         producer.send(record);
     }
     
+     public void sendAsObject(String topic, byte[] data){
+        log.info("sending bytes length='{}' to topic='{}'", data.length, topic);
+		ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, data);
+		ListenableFuture<SendResult<String, byte[]>> future =
+				producer.send(record);
+
+		future.addCallback(new ListenableFutureCallback<SendResult<String, byte[]>>() {
+
+			@Override
+			public void onSuccess(SendResult<String, byte[]> result) {
+				log.info("Sent bytes length=[" + data.length +
+						"] with offset=[" + result.getRecordMetadata().offset() + "]");
+			}
+			@Override
+			public void onFailure(Throwable ex) {
+				log.info("Unable to send bytes length=["
+						+ data.length + "] due to : " + ex.getMessage());
+			}
+		});
+
+    }
+    
 }
